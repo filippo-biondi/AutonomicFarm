@@ -2,6 +2,8 @@
 #include <chrono>
 
 #include "Farm.hpp"
+#include "MonitoredFarm.hpp"
+
 
 int test_func(int x)
 {
@@ -15,28 +17,43 @@ int test_func(int x)
 
 int main(int argc, char** argv)
 {
-	native_af::Farm farm{8};
+	if(argc != 2)
+	{
+		std::cout << "Usage: ./test1 <n_workers>" << std::endl;
+		return 1;
+	}
+	native_af::Farm farm{static_cast<unsigned int>(std::stoul(argv[1]))};
+
 	unsigned long int t_base = 0;
 	unsigned long int t_farm = 0;
 
-	for (int i = 0; i < 1000; i++)
+	std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+	for(int i = 0; i < 1000; i++)
 	{
-		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 		int test = test_func(0);
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		t_base += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-		int input = 0;
-		start = std::chrono::steady_clock::now();
-		farm.add_task<int, int>(test_func, input);
-		int result = farm.get_result<int>();
-		end = std::chrono::steady_clock::now();
-		t_farm += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 	}
-	farm.stop();
+	std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+	t_base = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
 	std::cout << "Base: " << t_base / 10 << std::endl;
+
+	for (int i = 0; i < 1000; i++)
+	{
+		int input = 0;
+		farm.add_task<int, int>(test_func, input);
+	}
+
+	start = std::chrono::high_resolution_clock ::now();
+	farm.start();
+	farm.stop();
+	end = std::chrono::high_resolution_clock ::now();
+	t_farm = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+
+
 	std::cout << "Farm: " << t_farm / 10 << std::endl;
+
+	std::cout << "Speedup: " << (double)t_base / (double)t_farm << std::endl;
 
 	return 0;
 }

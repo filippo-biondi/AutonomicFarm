@@ -4,38 +4,37 @@
 #include <queue>
 #include <thread>
 
+#include "SharedQueue.hpp"
 #include "TypedTask.hpp"
-#include "Emitter.hpp"
-#include "Collector.hpp"
-
 
 namespace native_af
 {
 	class Farm
 	{
 	private:
+		unsigned long int last_id = 0;
+
+		void worker_func();
+
+	protected:
 		unsigned int n_workers;
 		std::vector<std::thread> workers;
 		SharedQueue<std::shared_ptr<Task>> input_queue;
 		SharedQueue<std::shared_ptr<Task>> output_queue;
-//		Emitter emitter;
-//		Collector collector;
-
-		void worker_func();
 
 	public:
-
 		explicit Farm(unsigned int n_workers);
 
 		template<typename Tin, typename Tout>
-		void add_task(std::function<Tout(Tin)> func, Tin& input)
+		unsigned long int add_task(std::function<Tout(Tin)> func, Tin& input)
 		{
-			auto task = std::shared_ptr<Task>(new TypedTask<Tout>(func, input));
+			this->last_id++;
+			auto task = std::shared_ptr<Task>(new TypedTask<Tout>(last_id, func, input));
 			this->input_queue.push(task);
+			return last_id;
 		}
 
-		void add_task(std::shared_ptr<Task> task);
-
+		void start();
 		void stop();
 
 		template<typename Tout>
@@ -44,7 +43,6 @@ namespace native_af
 			auto task = this->output_queue.pop().get();
 			return static_cast<TypedTask<Tout>*>(task)->get_output();
 		}
-
 
 	};
 }

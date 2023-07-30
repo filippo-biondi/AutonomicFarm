@@ -13,20 +13,17 @@ private:
 	std::condition_variable cond;
 
 public:
-	void push(T& item)
+	virtual void push(T& item)
 	{
 		std::unique_lock<std::mutex> lock(this->mutex);
 		this->queue.push(item);
 		this->cond.notify_one();
 	}
 
-	T pop()
+	virtual T pop()
 	{
 		std::unique_lock<std::mutex> lock(this->mutex);
-		while (this->empty())
-		{
-			this->cond.wait(lock);
-		}
+		this->cond.wait(lock, [this] { return !this->queue.empty(); });
 		T item = this->queue.front();
 		this->queue.pop();
 		return item;
@@ -35,6 +32,11 @@ public:
 	bool empty()
 	{
 		return this->queue.empty();
+	}
+
+	unsigned int size()
+	{
+		return this->queue.size();
 	}
 
 };

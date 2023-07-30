@@ -5,7 +5,6 @@
 #include <utility>
 
 #include "Task.hpp"
-#include "SharedQueue.hpp"
 
 namespace native_af
 {
@@ -20,14 +19,14 @@ namespace native_af
 	public:
 		std::string name;
 
-		explicit TypedTask(std::function<Tout()> func) : func{func}
+		explicit TypedTask(unsigned long int id, std::function<Tout()> func) : Task{id}, func{func}
 		{}
 
 		template<typename Tin>
-		TypedTask(std::function<Tout(Tin)> func, Tin& input) : func{[func, input](){return func(input);}}
+		TypedTask(unsigned long int id, std::function<Tout(Tin)> func, Tin& input) : Task{id}, func{[func, input](){return func(input);}}
 		{}
 
-		TypedTask(std::function<Tout()> func, const std::string& name) : TypedTask{func}
+		TypedTask(unsigned long int id, std::function<Tout()> func, const std::string& name) : TypedTask{id, func}
 		{
 			this->name = name;
 		}
