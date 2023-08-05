@@ -6,128 +6,152 @@
 
 namespace native_af
 {
-	Monitor::Monitor(MonitoredFarm &farm, unsigned int moving_average_length) :
-			farm{farm}, moving_average_length{moving_average_length}, moving_average_alpha{1.0 / moving_average_length},
-			worker_started_map{}, task_finished_times{moving_average_length}, task_arrived_times{moving_average_length},
-			task_taken_times{moving_average_length}, worker_latency_map{}
-	{
-	}
+	Monitor::Monitor(MonitoredFarm &farm, unsigned int queues_length, MonitorLogger logger) :
+			farm{farm}, queues_length{queues_length},
+			worker_started_map{}, task_finished_times{queues_length},
+			task_arrived_times{queues_length}, task_taken_times{queues_length},
+			workers_latency{queues_length}, logger{std::move(logger)}
+	{}
 
 	void Monitor::start()
 	{
-		std::thread monitor_thread(&Monitor::monitor_func, this);
-		monitor_thread.detach();
+		this->start_time = high_resolution_clock::now();
+		this->monitor_thread = std::thread{&Monitor::monitor_func, this};
 		this->farm.log_info = true;
+	}
+
+	void Monitor::stop()
+	{
+		this->stop_thread = true;
+		auto item = MonitorInfo{InfoType::TASK_ARRIVED, std::this_thread::get_id(), 0, high_resolution_clock::now()};
+		this->farm.monitor_queue.push_front(item);
+		this->monitor_thread.join();
+	}
+
+	void Monitor::log(double time_span)
+	{
+		auto instant_throughput = this->get_instant_throughput();
+		auto average_throughput = this->get_throughput(time_span);
+
+		auto average_worker_latency = this->get_latency(time_span).count();
+
+		auto instant_arrival_frequency = this->get_instant_arrival_frequency();
+		auto average_arrival_frequency = this->get_arrival_frequency(time_span);
+		auto queue_size = static_cast<double>(this->get_arrival_queue_size());
+		auto n_worker = this->get_n_worker();
+		auto estimated_overhead = this->get_estimated_worker_overhead(time_span);
+
+		double timestamp = duration<double>(high_resolution_clock::now() - this->start_time).count();
+		this->logger.log({{"Timestamp", timestamp},
+						  {"Instant throughput", instant_throughput},
+						  {"Instant arrival frequency", instant_arrival_frequency},
+						  {"Average throughput", average_throughput},
+						  {"Average arrival frequency", average_arrival_frequency},
+						  {"Queue size", queue_size},
+						  {"n. workers", n_worker},
+						  {"Average worker_latency", average_worker_latency},
+						  {"Estimated overhead", estimated_overhead}});
 	}
 
 	void Monitor::monitor_func()
 	{
 		while (true)
 		{
+			if(this->stop_thread) { break; }
+
 			auto info = this->farm.monitor_queue.pop();
+			duration<double> latency{};
 
-			if (info.task_id == 0)
 			{
-				break;
-			}
-
-			if (info.info_type == InfoType::TASK_STARTED)
-			{
-				this->worker_started_map[info.thread_id] = info.time_point;
-			} else if (info.info_type == InfoType::TASK_FINISHED)
-			{
-				this->task_finished_times.push_back(info.time_point);
-
-				auto latency = info.time_point - this->worker_started_map[info.thread_id];
-
-				if (this->worker_latency_map.find(info.thread_id) == this->worker_latency_map.end())
+				std::unique_lock<std::mutex> lock(this->monitor_mutex);
+				switch (info.info_type)
 				{
-					this->worker_latency_map.insert(
-							{info.thread_id, CircularVector<std::chrono::duration<double>>{this->moving_average_length}});
+					case InfoType::TASK_STARTED:
+						this->worker_started_map[info.thread_id] = info.time_point;
+						break;
+
+					case InfoType::TASK_FINISHED:
+						this->task_finished_times.push_back(info.time_point);
+
+						latency = info.time_point - this->worker_started_map[info.thread_id];
+						this->workers_latency.push_back({info.time_point, latency});
+						break;
+
+					case InfoType::TASK_ARRIVED:
+						this->task_arrived_times.push_back(info.time_point);
+						break;
+
+					case InfoType::TASK_TAKEN:
+						this->task_taken_times.push_back(info.time_point);
+						break;
 				}
-				this->worker_latency_map.at(info.thread_id).push_back(latency);
-			} else if (info.info_type == InfoType::TASK_ARRIVED)
-			{
-				this->task_arrived_times.push_back(info.time_point);
-			} else if (info.info_type == InfoType::TASK_TAKEN)
-			{
-				this->task_taken_times.push_back(info.time_point);
-			}
-
-
-			if (!this->task_finished_times.empty() && !this->task_arrived_times.empty())
-			{
-				auto instant_throughput = this->get_instant_throughput();
-				auto average_throughput = this->get_moving_average_throughput();
-
-				auto instant_arrival_frequency = this->get_instant_arrival_frequency();
-				auto average_arrival_frequency = this->get_moving_average_arrival_frequency();
-
-				std::cout << '\r'
-				          << "Instant throughput: " << std::setw(6) << std::setprecision(2) << std::fixed
-				          << instant_throughput << " task/s"
-				          << "\t Moving average throughput: " << std::setw(5) << std::setprecision(2) << std::fixed
-				          << average_throughput << " task/s"
-				          << "\t Instant arrival frequency: " << std::setw(5) << std::setprecision(2) << std::fixed
-				          << instant_arrival_frequency << " task/s"
-				          << "\t Moving average arrival frequency: " << std::setw(5) << std::setprecision(2) << std::fixed
-				          << average_arrival_frequency << " task/s"
-				          << "\t Queue size: " << std::setw(8) << this->get_arrival_queue_size()
-				          //			          << "\t Instant taken frequency: " << this->task_taken_frequency_queue.back()
-				          //			          << " tasks per second"
-				          //			          << "\t Moving average taken frequency: " << this->average_task_taken_frequency
-				          //			          << " tasks per second"
-				          << std::flush;
-//
-//				for(unsigned int i=0; i < this->farm.n_workers; i++)
-//				{
-//					std::cout << "Worker " << i << ": " << std::setprecision(3) << this->get_instant_latency(i).count() << "\t";
-//				}
-//				std::cout << "\r" << std::flush;
 			}
 		}
 	}
 
-	duration<double> Monitor::get_instant_latency(unsigned int worker)
+	duration<double> Monitor::get_instant_latency()
 	{
-		if (worker >= this->farm.n_workers)
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		if(this->workers_latency.empty())
 		{
-			throw std::runtime_error("Worker index out of range");
+			return {};
 		}
 
-
-		std::thread::id thread_id = this->farm.workers[worker].get_id();
-
-		if(this->worker_latency_map.find(thread_id) == this->worker_latency_map.end() ||
-		   this->worker_latency_map.at(thread_id).empty())
-		{
-			return duration<double>{0};
-		}
-
-		return this->worker_latency_map.at(thread_id).back();
+		return this->workers_latency.back().second;
 	}
 
-	duration<double> Monitor::get_moving_average_latency(unsigned int worker)
+	duration<double> Monitor::get_latency(double time_span)
 	{
-		if (worker >= this->worker_latency_map.size())
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		if(this->workers_latency.size() < 2)
 		{
-			throw std::runtime_error("Worker index out of range");
+			return {};
 		}
 
-		std::thread::id thread_id = this->farm.workers[worker].get_id();
+		auto front_time = high_resolution_clock::now() - duration<double>(time_span);
 
-		if(this->worker_latency_map.at(thread_id).empty())
+		auto front = std::lower_bound(this->workers_latency.begin(),
+		                              this->workers_latency.end(),
+		                              front_time,
+									  [](auto& pair, auto& time_point)
+		                              {
+			                              return pair.first < time_point;
+		                              });
+		if(front == this->workers_latency.end())
 		{
-			return duration<double>{0};
+			return {};
 		}
 
-		return std::accumulate(this->worker_latency_map.at(thread_id).begin(),
-		                       this->worker_latency_map.at(thread_id).end(),
-		                       duration<double>{0}) / this->moving_average_length;
+		long n_task;
+
+		n_task = std::distance(front, this->workers_latency.end());
+
+		return std::accumulate(front,
+		                       this->workers_latency.end(),
+		                       duration<double>{},
+							   [](auto& sum, auto& pair)
+		                       {
+			                       return sum + pair.second;
+		                       }) / n_task;
+	}
+
+	double Monitor::get_estimated_worker_overhead(double time_span)
+	{
+		auto task_latency = this->get_latency(time_span).count();
+		auto worker_throughput = this->get_throughput(time_span) / this->get_n_worker();
+
+		if(task_latency == 0 || worker_throughput == 0)
+		{
+			return 0;
+		}
+
+		auto worker_service_time = (1.0 / worker_throughput);
+		return std::max(0.0, worker_service_time - task_latency);
 	}
 
 	double Monitor::get_instant_throughput()
 	{
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
 		if (this->task_finished_times.size() < 2)
 		{
 			return 0;
@@ -137,20 +161,44 @@ namespace native_af
 		                                           this->task_finished_times.end()[-2]).count();
 	}
 
-	double Monitor::get_moving_average_throughput()
+	double get_avg(CircularVector<high_resolution_clock::time_point>& vector, double time_span)
 	{
-		if (this->task_finished_times.size() < 2)
+		if(vector.size() < 2)
 		{
 			return 0;
 		}
 
-		return static_cast<double >(this->task_finished_times.size() - 1) /
-		       std::chrono::duration<double>(this->task_finished_times.back() -
-		                                     this->task_finished_times.front()).count();
+		auto front_time = high_resolution_clock::now() - duration<double>(time_span);
+
+		auto front = std::lower_bound(vector.begin(),
+		                              vector.end(),
+		                              front_time);
+		if(front == vector.end())
+		{
+			return 0;
+		}
+
+		if(front == vector.begin())
+		{
+			time_span = duration<double>(vector.back() - vector.front()).count();
+		}
+
+		long n_task;
+
+		n_task = std::distance(front, vector.end());
+
+		return static_cast<double>(n_task) / time_span;
+	}
+
+	double Monitor::get_throughput(double time_span)
+	{
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		return get_avg(this->task_finished_times, time_span);
 	}
 
 	double Monitor::get_instant_arrival_frequency()
 	{
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
 		if (this->task_arrived_times.size() < 2)
 		{
 			return 0;
@@ -160,20 +208,15 @@ namespace native_af
 		                                           this->task_arrived_times.end()[-2]).count();
 	}
 
-	double Monitor::get_moving_average_arrival_frequency()
+	double Monitor::get_arrival_frequency(double time_span)
 	{
-		if(this->task_arrived_times.size() < 2)
-		{
-			return 0;
-		}
-
-		return static_cast<double >(this->task_arrived_times.size() - 1) /
-		       std::chrono::duration<double>(this->task_arrived_times.back() -
-		                                     this->task_arrived_times.front()).count();
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		return get_avg(this->task_arrived_times, time_span);
 	}
 
 	double Monitor::get_instant_taken_frequency()
 	{
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
 		if(this->task_taken_times.size() < 2)
 		{
 			return 0;
@@ -183,20 +226,21 @@ namespace native_af
 		                                           this->task_taken_times.end()[-2]).count();
 	}
 
-	double Monitor::get_moving_average_taken_frequency()
+	double Monitor::get_taken_frequency(double time_span)
 	{
-		if(this->task_taken_times.size() < 2)
-		{
-			return 0;
-		}
-
-		return static_cast<double >(this->task_taken_times.size() - 1) /
-		       std::chrono::duration<double>(this->task_taken_times.back() -
-		                                     this->task_taken_times.front()).count();
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		return get_avg(this->task_taken_times, time_span);
 	}
 
 	unsigned long Monitor::get_arrival_queue_size()
 	{
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
 		return this->farm.input_queue.size();
+	}
+
+	unsigned int Monitor::get_n_worker()
+	{
+		std::unique_lock<std::mutex> lock(this->farm.farm_mutex);
+		return this->farm.n_workers;
 	}
 }

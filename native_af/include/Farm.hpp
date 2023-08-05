@@ -36,6 +36,7 @@ namespace native_af
 
 		void start();
 		void stop();
+		void fast_stop();
 
 		template<typename Tout>
 		Tout& get_result()

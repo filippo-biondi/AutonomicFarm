@@ -6,7 +6,6 @@ using namespace native_af;
 
 MonitoredFarm::MonitoredFarm(unsigned int n_workers) : Farm{n_workers}, monitor_queue{}
 {
-	this->monitor = std::make_unique<Monitor>(*this, 1000);
 }
 
 void MonitoredFarm::start()
@@ -41,4 +40,6 @@ void MonitoredFarm::worker_func()
 			this->monitor_queue.push(time_info);
 		}
 	}
+	auto my_id = std::this_thread::get_id();
+	this->worker_exited_queue.push(my_id);
 }

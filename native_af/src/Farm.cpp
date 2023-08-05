@@ -22,6 +22,19 @@ void Farm::stop()
 	}
 }
 
+void Farm::fast_stop()
+{
+	for(unsigned int i = 0; i < this->n_workers; i++)
+	{
+		auto eos_task = std::shared_ptr<Task>(new EoSTask());
+		this->input_queue.push_front(eos_task);
+	}
+	for (unsigned int i = 0; i < this->n_workers; i++)
+	{
+		this->workers[i].join();
+	}
+}
+
 void Farm::start()
 {
 	int i = 0;

@@ -15,14 +15,18 @@ namespace native_af
 	class MonitoredFarm : public Farm
 	{
 	private:
-		std::unique_ptr<Monitor> monitor;
 		SharedQueue<MonitorInfo> monitor_queue;
 		std::atomic<bool> log_info = false;
+		SharedQueue<std::thread::id> worker_exited_queue;
+
+		std::mutex farm_mutex;
 
 		void worker_func();
 
 	public:
+		friend class Manager;
 		friend class Monitor;
+		friend class Executor;
 
 		explicit MonitoredFarm(unsigned int n_workers);
 

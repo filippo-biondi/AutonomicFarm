@@ -10,5 +10,5 @@ include_directories(native_af/include)
 add_executable(test1 test/test1.cpp)
 target_link_libraries(test1 PRIVATE NativeAutonomicFarm)
 
-add_executable(test2 test/test_monitor.cpp)
-target_link_libraries(test2 PRIVATE NativeAutonomicFarm)
+add_executable(test3 test/test_manager.cpp)
+target_link_libraries(test3 PRIVATE NativeAutonomicFarm)
