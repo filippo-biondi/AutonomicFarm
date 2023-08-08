@@ -9,6 +9,10 @@ Farm::Farm(unsigned int n_workers) : n_workers{n_workers}, workers{n_workers}, i
 {
 }
 
+/**
+ * Push n. of workers EoSTask in the input_queue and wait for all the workers to exit.
+ * This will wait for all the task that were already present in the queue to be executed.
+ */
 void Farm::stop()
 {
 	for(unsigned int i = 0; i < this->n_workers; i++)
@@ -22,6 +26,10 @@ void Farm::stop()
 	}
 }
 
+/**
+ * Push n. of workers EoSTask on the front of the input_queue and wait for all the workers to exit.
+ * This will cause the farm to stop faster since the task that are in the queue are not executed.
+ */
 void Farm::fast_stop()
 {
 	for(unsigned int i = 0; i < this->n_workers; i++)
@@ -35,6 +43,9 @@ void Farm::fast_stop()
 	}
 }
 
+/**
+ * Start n. of workers new threads and push them in the workers vector.
+ */
 void Farm::start()
 {
 	int i = 0;
@@ -56,6 +67,10 @@ void Farm::start()
 	}
 }
 
+/**
+ * Pop a task from the input_queue, run it and push it in the output_queue.
+ * Repeat these actions until an EOS task is received.
+ */
 void Farm::worker_func()
 {
 	while (true)
@@ -68,12 +83,4 @@ void Farm::worker_func()
 		task->run();
 		this->output_queue.push(task);
 	}
-//	int x{0};
-//	for (int j = 0; j < 1000; j++)
-//	{
-//		for(int i = 0; i < 1000000; i++)
-//		{
-//			x += 1;
-//		}
-//	}
 }

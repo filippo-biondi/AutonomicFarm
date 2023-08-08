@@ -8,12 +8,18 @@ namespace native_af
 	time_span{time_span}, wait_time{std::chrono::duration<double>{1.0 / frequency}}
 	{}
 
+	/**
+	 * First start the Monitor and then the thread executing the MAPE loop.
+	 */
 	void Manager::start()
 	{
 		this->monitor.start();
 		this->manager_thread = std::thread{&Manager::manager_func, this};
 	}
 
+	/**
+	 * Stop the thread executing the MAPE loop and then stop the Monitor.
+	 */
 	void Manager::stop()
 	{
 		this->stop_thread = true;
@@ -21,6 +27,14 @@ namespace native_af
 		this->manager_thread.join();
 	}
 
+	/**
+	 * Run in loop the following action:
+	 * - log the metrics of the Monitor
+	 * - run the Analyzer
+	 * - run the Planner with the result of the Analyzer
+	 * - run the Executor with the result of the Planner
+	 * - wait for the time specified by the manager frequency
+	 */
 	void Manager::manager_func()
 	{
 		while (true)

@@ -7,6 +7,19 @@ namespace native_af
 	monitor{monitor}, epsilon{epsilon}, queue_upper_limit{queue_upper_limit}, queue_lower_limit{queue_lower_limit}, time_span{average_time_span}
 	{}
 
+	/**
+	 * Get form the Monitor the current throughput, arrival frequency, average task time and queue size and:
+	 * - If the current arrival frequency is greater than the current throughput,
+	 * the Analyser will suggest to increase the number of workers and will update the estimated overhead
+	 * (this is done because a real estimate of the overhead can be measured by the Monitor only when all the threads are working).
+	 * - If the current arrival frequency is lower than the current throughput, the Analyser will suggest to decrease the number of workers.
+	 * - If the current arrival frequency is equal to the current throughput,
+	 * the Analyser will suggest to decrease the number of workers only if the estimated throughput
+	 * (calculated basing on average time for a task, estimated overhead and number of workers) is greater than the current arrival frequency.
+	 * In this case the throughput returned is the estimated one
+	 * - If the queue size is greater than the upper limit, the Analyser will suggest to recover the queue until the queue size will be lower than the lower limit.
+	 * - Otherwise, the Analyser will suggest to take no action.
+	 */
 	std::tuple<Action, double, double, double, unsigned int> Analyser::analyse()
 	{
 		double current_throughput = this->monitor.get_throughput(this->time_span);
@@ -14,11 +27,6 @@ namespace native_af
 		double average_task_time = this->monitor.get_latency(this->time_span).count();
 		double estimated_throughput = 1.0 / (average_task_time + this->estimated_overhead) * this->monitor.get_n_worker();
 		unsigned int current_queue_size = this->monitor.get_arrival_queue_size();
-
-//		if(current_throughput == 0 || current_arrival_frequency == 0 || average_task_time == 0)
-//		{
-//			return {Action::NO_ACTION, current_throughput, current_arrival_frequency, average_task_time, current_queue_size};
-//		}
 
 		Action action;
 

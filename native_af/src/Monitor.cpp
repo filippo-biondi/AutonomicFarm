@@ -6,11 +6,11 @@
 
 namespace native_af
 {
-	Monitor::Monitor(MonitoredFarm &farm, unsigned int queues_length, MonitorLogger logger) :
-			farm{farm}, queues_length{queues_length},
-			worker_started_map{}, task_finished_times{queues_length},
-			task_arrived_times{queues_length}, task_taken_times{queues_length},
-			workers_latency{queues_length}, logger{std::move(logger)}
+	Monitor::Monitor(MonitoredFarm &farm, unsigned int vectors_length, MonitorLogger logger) :
+			farm{farm},
+			worker_started_map{}, task_pushed_times{vectors_length},
+			task_arrived_times{vectors_length}, task_taken_times{vectors_length},
+			workers_latency{vectors_length}, logger{std::move(logger)}
 	{}
 
 	void Monitor::start()
@@ -28,7 +28,7 @@ namespace native_af
 		this->monitor_thread.join();
 	}
 
-	void Monitor::log(double time_span)
+	void Monitor::log(std::chrono::duration<double> time_span)
 	{
 		auto instant_throughput = this->get_instant_throughput();
 		auto average_throughput = this->get_throughput(time_span);
@@ -71,10 +71,12 @@ namespace native_af
 						break;
 
 					case InfoType::TASK_FINISHED:
-						this->task_finished_times.push_back(info.time_point);
-
 						latency = info.time_point - this->worker_started_map[info.thread_id];
 						this->workers_latency.push_back({info.time_point, latency});
+						break;
+
+					case InfoType::TASK_PUSHED:
+						this->task_pushed_times.push_back(info.time_point);
 						break;
 
 					case InfoType::TASK_ARRIVED:
@@ -100,7 +102,7 @@ namespace native_af
 		return this->workers_latency.back().second;
 	}
 
-	duration<double> Monitor::get_latency(double time_span)
+	duration<double> Monitor::get_latency(duration<double> time_span)
 	{
 		std::unique_lock<std::mutex> lock(this->monitor_mutex);
 		if(this->workers_latency.size() < 2)
@@ -108,7 +110,7 @@ namespace native_af
 			return {};
 		}
 
-		auto front_time = high_resolution_clock::now() - duration<double>(time_span);
+		auto front_time = high_resolution_clock::now() - time_span;
 
 		auto front = std::lower_bound(this->workers_latency.begin(),
 		                              this->workers_latency.end(),
@@ -135,7 +137,7 @@ namespace native_af
 		                       }) / n_task;
 	}
 
-	double Monitor::get_estimated_worker_overhead(double time_span)
+	double Monitor::get_estimated_worker_overhead(duration<double> time_span)
 	{
 		auto task_latency = this->get_latency(time_span).count();
 		auto worker_throughput = this->get_throughput(time_span) / this->get_n_worker();
@@ -152,23 +154,23 @@ namespace native_af
 	double Monitor::get_instant_throughput()
 	{
 		std::unique_lock<std::mutex> lock(this->monitor_mutex);
-		if (this->task_finished_times.size() < 2)
+		if (this->task_pushed_times.size() < 2)
 		{
 			return 0;
 		}
 
-		return 1.0 / std::chrono::duration<double>(this->task_finished_times.back() -
-		                                           this->task_finished_times.end()[-2]).count();
+		return 1.0 / std::chrono::duration<double>(this->task_pushed_times.back() -
+		                                           this->task_pushed_times.end()[-2]).count();
 	}
 
-	double get_avg(CircularVector<high_resolution_clock::time_point>& vector, double time_span)
+	double Monitor::get_avg(CircularVector<high_resolution_clock::time_point>& vector, duration<double> time_span)
 	{
 		if(vector.size() < 2)
 		{
 			return 0;
 		}
 
-		auto front_time = high_resolution_clock::now() - duration<double>(time_span);
+		auto front_time = high_resolution_clock::now() - time_span;
 
 		auto front = std::lower_bound(vector.begin(),
 		                              vector.end(),
@@ -180,20 +182,20 @@ namespace native_af
 
 		if(front == vector.begin())
 		{
-			time_span = duration<double>(vector.back() - vector.front()).count();
+			time_span = duration<double>(vector.back() - vector.front());
 		}
 
 		long n_task;
 
 		n_task = std::distance(front, vector.end());
 
-		return static_cast<double>(n_task) / time_span;
+		return static_cast<double>(n_task) / time_span.count();
 	}
 
-	double Monitor::get_throughput(double time_span)
+	double Monitor::get_throughput(duration<double> time_span)
 	{
 		std::unique_lock<std::mutex> lock(this->monitor_mutex);
-		return get_avg(this->task_finished_times, time_span);
+		return Monitor::get_avg(this->task_pushed_times, time_span);
 	}
 
 	double Monitor::get_instant_arrival_frequency()
@@ -208,10 +210,10 @@ namespace native_af
 		                                           this->task_arrived_times.end()[-2]).count();
 	}
 
-	double Monitor::get_arrival_frequency(double time_span)
+	double Monitor::get_arrival_frequency(duration<double> time_span)
 	{
 		std::unique_lock<std::mutex> lock(this->monitor_mutex);
-		return get_avg(this->task_arrived_times, time_span);
+		return Monitor::get_avg(this->task_arrived_times, time_span);
 	}
 
 	double Monitor::get_instant_taken_frequency()
@@ -226,10 +228,10 @@ namespace native_af
 		                                           this->task_taken_times.end()[-2]).count();
 	}
 
-	double Monitor::get_taken_frequency(double time_span)
+	double Monitor::get_taken_frequency(duration<double> time_span)
 	{
 		std::unique_lock<std::mutex> lock(this->monitor_mutex);
-		return get_avg(this->task_taken_times, time_span);
+		return Monitor::get_avg(this->task_taken_times, time_span);
 	}
 
 	unsigned long Monitor::get_arrival_queue_size()

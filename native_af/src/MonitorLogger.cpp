@@ -12,6 +12,9 @@ namespace native_af
 	MonitorLogger::MonitorLogger(std::vector<std::ostream*> streams) : streams{std::move(streams)}
 	{}
 
+	/**
+	 * Log all the string-value pair with the string followed by ": " followed by the value and separating each pair witha a tab.
+	 */
 	void MonitorLogger::log(const std::vector<std::pair<std::string, double>> &values)
 	{
 		for(auto &stream: this->streams)

@@ -11,6 +11,11 @@ namespace native_af
 			last_change{std::chrono::high_resolution_clock::now()}
 	{}
 
+	/*
+	 * Basing on the action returned by the Analyzer determine the ideal number of worker, then clip the value between 1 and the maximum number of workers.
+	 * If the time to wait after the last change has elapsed and the clipped ideal number of workers is different from the current number of workers,
+	 * then return the difference between the ideal number of workers and the current number of workers.
+	 */
 	int Planner::plan(Action action, double throughput, double arrival_frequency, double task_time, unsigned int queue_size)
 	{
 		double average_worker_service_time = 1.0 / task_time;

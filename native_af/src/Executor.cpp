@@ -6,6 +6,9 @@ namespace native_af
 	Executor::Executor(MonitoredFarm& farm) : farm{farm}
 	{}
 
+	/**
+	 * Start n new threads and push them in the workers vector of the farm.
+	 */
 	void Executor::add_workers(unsigned int n)
 	{
 		std::unique_lock<std::mutex> lock(this->farm.farm_mutex);
@@ -18,6 +21,10 @@ namespace native_af
 		this->farm.n_workers += n;
 	}
 
+	/**
+	 * Push n EoSTask in the input_queue of the farm and wait for the workers to exit.
+	 * Then join the threads of the exited worker and remove them from the workers vector of the farm.
+	 */
 	void Executor::remove_workers(unsigned int n)
 	{
 		std::unique_lock<std::mutex> lock(this->farm.farm_mutex);
