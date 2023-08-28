@@ -1,8 +1,8 @@
 #include <iostream>
 #include <chrono>
 
-#include "Farm.hpp"
-#include "MonitoredFarm.hpp"
+#include "native/Farm.hpp"
+#include "native/MonitoredFarm.hpp"
 
 
 int test_func(int x)
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 	t_farm = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
 
-	std::cout << "Farm: " << t_farm / 10 << std::endl;
+	std::cout << "MonitoredFarm: " << t_farm / 10 << std::endl;
 
 	std::cout << "Speedup: " << (double)t_base / (double)t_farm << std::endl;
 

@@ -2,13 +2,21 @@ cmake_minimum_required(VERSION 3.16)
 project(AutonomicFarm)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
-add_subdirectory(native_af)
+add_definitions(-DPIN_TO_CORES=1)
+set(BUILD_TEST ON)
 
-include_directories(native_af/include)
+include_directories(./include
+                    ./fastflow)
 
-add_executable(test1 test/test1.cpp)
-target_link_libraries(test1 PRIVATE NativeAutonomicFarm)
+file(GLOB SRC_FILES_NATIVE src/native/*.c*)
+file(GLOB SRC_FILES_FASTFLOW src/fastflow/*.c*)
+file(GLOB SRC_FILES_COMMON src/*.c*)
 
-add_executable(test3 test/test_manager.cpp)
-target_link_libraries(test3 PRIVATE NativeAutonomicFarm)
+add_library(${PROJECT_NAME} SHARED ${SRC_FILES_COMMON} ${SRC_FILES_NATIVE} ${SRC_FILES_FASTFLOW})
+
+
+if (BUILD_TEST)
+    add_subdirectory(test)
+endif ()
