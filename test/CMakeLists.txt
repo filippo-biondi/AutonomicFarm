@@ -6,10 +6,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 
 include_directories(../include)
 
-add_executable(test1 test1.cpp)
-add_executable(test2 test_native.cpp)
-add_executable(test3 test_fastflow.cpp)
+add_executable(test_native test_native.cpp)
+add_executable(test_fastflow test_fastflow.cpp)
 
-target_link_libraries(test1 AutonomicFarm)
-target_link_libraries(test2 AutonomicFarm)
-target_link_libraries(test3 AutonomicFarm)
+target_link_libraries(test_native AutonomicFarm)
+target_link_libraries(test_fastflow AutonomicFarm)
