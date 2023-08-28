@@ -1,7 +1,9 @@
+#pragma once
+
 #include <utility>
 #include <stdexcept>
 
-#pragma once
+#include "SharedQueue.hpp"
 
 
 /**
@@ -33,6 +35,9 @@ public:
 	 */
 	[[nodiscard]]
 	virtual bool is_eos() const = 0;
+
+	[[nodiscard]]
+	virtual bool is_sleep() const = 0;
 
 	/**
 	 * Get the id of the task.
@@ -80,6 +85,11 @@ public:
 		return false;
 	}
 
+	[[nodiscard]]
+	bool is_sleep() const override
+	{
+		return false;
+	}
 	/**
 	 * Get the output of the task.
 	 * @throw std::runtime_error if the task is not finished
@@ -117,6 +127,45 @@ public:
 	 */
 	[[nodiscard]]
 	bool is_eos() const override
+	{
+		return true;
+	}
+
+	[[nodiscard]]
+	bool is_sleep() const override
+	{
+		return false;
+	}
+};
+
+class SleepTask : public ITask
+{
+private:
+	SharedQueue<bool>& sleep_queue;
+public:
+	/**
+	 * Basic EoSTask constructor.
+	 */
+	explicit SleepTask(SharedQueue<bool>& sleep_queue) : ITask{0}, sleep_queue{sleep_queue}
+	{}
+
+	void run() override
+	{
+		this->sleep_queue.pop();
+	}
+
+	/**
+	 * Returns whether the task is an EoS task.
+	 * @return true
+	 */
+	[[nodiscard]]
+	bool is_eos() const override
+	{
+		return false;
+	}
+
+	[[nodiscard]]
+	bool is_sleep() const override
 	{
 		return true;
 	}

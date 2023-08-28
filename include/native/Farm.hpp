@@ -3,9 +3,10 @@
 #include <memory>
 #include <queue>
 #include <thread>
+#include <functional>
 
 #include "SharedQueue.hpp"
-#include "TypedTask.hpp"
+#include "Task.hpp"
 
 namespace native
 {

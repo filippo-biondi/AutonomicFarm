@@ -19,9 +19,11 @@ namespace native
 	class MonitoredFarm : public IMonitoredFarm, public Farm
 	{
 	private:
+		unsigned int current_workers;
 		SharedQueue<MonitorInfo> monitor_queue;
 		std::atomic<bool> log_info = false;
 		SharedQueue<std::thread::id> worker_exited_queue;
+		SharedQueue<bool> sleep_queue;
 
 		std::mutex farm_mutex;
 
@@ -36,7 +38,7 @@ namespace native
 		 * Basic MonitoredFarm constructor.
 		 * @param n_workers Number of workers.
 		 */
-		explicit MonitoredFarm(unsigned int n_workers);
+		MonitoredFarm(unsigned int n_workers, unsigned int max_workers);
 
 		/**
 		 * Add a task to be executed by the farm.

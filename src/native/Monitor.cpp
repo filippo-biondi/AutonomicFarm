@@ -76,6 +76,6 @@ namespace native
 	unsigned int Monitor::get_n_worker()
 	{
 		std::unique_lock<std::mutex> lock(this->farm->farm_mutex);
-		return this->farm->n_workers;
+		return this->farm->current_workers;
 	}
 }

@@ -9,7 +9,6 @@
 #include "ff/node.hpp"
 #include "ff/farm.hpp"
 #include "Task.hpp"
-#include "TypedTask.hpp"
 #include "SharedQueue.hpp"
 #include "MonitorInfo.hpp"
 

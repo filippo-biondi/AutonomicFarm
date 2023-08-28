@@ -1,10 +1,11 @@
 #include "native/MonitoredFarm.hpp"
 #include "native/Monitor.hpp"
-
+#include "Task.hpp"
 
 namespace native
 {
-	MonitoredFarm::MonitoredFarm(unsigned int n_workers) : Farm{n_workers}, monitor_queue{}
+	MonitoredFarm::MonitoredFarm(unsigned int n_workers, unsigned int max_workers) :
+		Farm{max_workers}, current_workers{n_workers}, monitor_queue{}, worker_exited_queue{}
 	{}
 
 	unsigned long int MonitoredFarm::add_task(std::function<void()> func, void* output)
@@ -36,7 +37,13 @@ namespace native
 	 */
 	void MonitoredFarm::start()
 	{
-		for (auto &worker: this->workers)
+		for(unsigned int i=this->workers.size(); i > this->current_workers; i--)
+		{
+			std::shared_ptr<ITask> sleep_task = std::make_shared<SleepTask>(this->sleep_queue);
+			this->input_queue.push(sleep_task);
+		}
+
+		for(auto &worker: this->workers)
 		{
 			worker = std::thread(&MonitoredFarm::worker_func, this);
 		}
@@ -44,6 +51,11 @@ namespace native
 
 	void MonitoredFarm::stop()
 	{
+		for(unsigned int i = this->current_workers; i < this->workers.size(); i++)
+		{
+			auto a = false;
+			this->sleep_queue.push(a);
+		}
 		Farm::stop();
 	}
 
@@ -67,6 +79,12 @@ namespace native
 			if (task->is_eos())
 			{
 				break;
+			}
+
+			if(task->is_sleep())
+			{
+				task->run();
+				continue;
 			}
 
 			if (this->log_info)

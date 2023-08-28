@@ -35,7 +35,7 @@ AutonomicFarm::AutonomicFarm(bool fastflow,
 	}
 	else
 	{
-		auto native_monitored_farm = std::make_shared<native::MonitoredFarm>(starting_workers);
+		auto native_monitored_farm = std::make_shared<native::MonitoredFarm>(starting_workers, max_workers);
 
 		this->monitor = std::make_shared<native::Monitor>(native_monitored_farm, monitor_vectors_length, logger);
 		this->executor = std::make_shared<native::Executor>(native_monitored_farm);

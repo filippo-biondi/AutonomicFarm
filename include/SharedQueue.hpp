@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <deque>
 
 
 /**
@@ -69,5 +70,4 @@ public:
 		std::unique_lock<std::mutex> lock(this->mutex);
 		return this->queue.size();
 	}
-
 };
