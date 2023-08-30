@@ -27,14 +27,14 @@ void IMonitor::log(std::chrono::duration<double> time_span)
 
 	double timestamp = duration<double>(high_resolution_clock::now() - this->start_time).count();
 	this->logger.log({{"Timestamp", timestamp},
-	                  {"Instant throughput", instant_throughput},
-	                  {"Instant arrival frequency", instant_arrival_frequency},
-	                  {"Average throughput", average_throughput},
-	                  {"Average arrival frequency", average_arrival_frequency},
-	                  {"Queue size", queue_size},
-	                  {"n. workers", n_worker},
-	                  {"Average worker_latency", average_worker_latency},
-	                  {"Estimated overhead", estimated_overhead}});
+	                  {"Instant_throughput", instant_throughput},
+	                  {"Instant_arrival_frequency", instant_arrival_frequency},
+	                  {"Average_throughput", average_throughput},
+	                  {"Average_arrival_frequency", average_arrival_frequency},
+	                  {"Queue_size", queue_size},
+	                  {"n_workers", n_worker},
+	                  {"Average_worker_latency", average_worker_latency},
+	                  {"Estimated_overhead", estimated_overhead}});
 }
 
 duration<double> IMonitor::get_instant_latency()
@@ -135,7 +135,7 @@ double IMonitor::get_avg(CircularVector<high_resolution_clock::time_point>& vect
 
 	n_task = std::distance(front, vector.end());
 
-	return static_cast<double>(n_task) / time_span.count();
+	return static_cast<double>(n_task) / (time_span.count());
 }
 
 double IMonitor::get_throughput(duration<double> time_span)

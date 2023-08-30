@@ -13,14 +13,12 @@ namespace native
 	 */
 	void Executor::add_workers(unsigned int n)
 	{
-		std::unique_lock<std::mutex> lock(this->farm->farm_mutex);
 		for(unsigned int i=0; i < n; i++)
 		{
 			auto a = true;
 			this->farm->sleep_queue.push(a);
+			this->farm->current_workers++;
 		}
-
-		this->farm->current_workers += n;
 	}
 
 	/**
@@ -29,13 +27,11 @@ namespace native
 	 */
 	void Executor::remove_workers(unsigned int n)
 	{
-		std::unique_lock<std::mutex> lock(this->farm->farm_mutex);
 		for(unsigned int i=0; i < n; i++)
 		{
 			std::shared_ptr<ITask> sleep_task = std::make_shared<SleepTask>(this->farm->sleep_queue);
 			this->farm->input_queue.push_front(sleep_task);
+			this->farm->current_workers--;
 		}
-
-		this->farm->current_workers -= n;
 	}
 }

@@ -81,8 +81,8 @@ public:
 	template<typename Tin, typename Tout>
 	unsigned long int add_task(std::function<Tout(Tin)> func, Tin& input)
 	{
-		auto* out = new Tout();
-		return this->farm->add_task([out, func, input]{*out = func(input);}, out);
+		ITask* task = new Task<Tout>(0, std::bind(func, input));
+		return this->farm->add_task(task);
 	}
 
 	/**
@@ -91,8 +91,10 @@ public:
 	 * @return result of the task
 	 */
 	template<typename Tout>
-	Tout* get_result()
+	Tout get_result()
 	{
-		return this->farm->get_result();
+		auto task = this->farm->get_result();
+		auto task_t = std::static_pointer_cast<Task<Tout>>(task);
+		return std::move(task_t->get_output());
 	}
 };

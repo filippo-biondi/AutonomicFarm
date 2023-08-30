@@ -59,7 +59,7 @@ namespace native
 		 * Create a new task with the given function and the given input (the id of the task will be the smallest unused id starting from 1)
 		 * and push it in the input queue.
 		 */
-		unsigned long int add_task(std::function<void()> func, void* output);
+		unsigned long int add_task(ITask* task);
 
 		/**
 		 * Start all the workers of the farm.
@@ -79,6 +79,6 @@ namespace native
 		 * @tparam Tout type of the output of the task
 		 * @return result of the task
 		 */
-		void* get_result();
+		std::shared_ptr<ITask> get_result();
 	};
 }

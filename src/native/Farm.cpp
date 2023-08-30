@@ -10,18 +10,18 @@ namespace native
 	{
 	}
 
-	unsigned long int Farm::add_task(std::function<void()> func, void *output)
+	unsigned long int Farm::add_task(ITask* task)
 	{
 		this->last_id++;
-		std::shared_ptr<ITask> task = std::make_shared<Task>(last_id, func, output);
-		this->input_queue.push(task);
+		task->set_id(this->last_id);
+		auto task_shared_ptr = std::shared_ptr<ITask>(task);
+		this->input_queue.push(task_shared_ptr);
 		return last_id;
 	}
 
-	void *Farm::get_result()
+	std::shared_ptr<ITask> Farm::get_result()
 	{
-		auto task = this->output_queue.pop().get();
-		return dynamic_cast<Task *>(task)->get_output();
+		return this->output_queue.pop();
 	}
 
 	/**

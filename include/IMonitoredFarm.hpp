@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "MonitorInfo.hpp"
+#include "Task.hpp"
 
 
 /**
@@ -29,7 +30,7 @@ public:
 	 * Push in the monitor queue the information that a task has arrived in the input_queue.
 	 */
 
-	virtual unsigned long int add_task(std::function<void()> func, void* output) = 0;
+	virtual unsigned long int add_task(ITask* task) = 0;
 
 	/**
 	 * Get the first result in the output queue of the farm.
@@ -40,7 +41,7 @@ public:
 	 * push in the monitor queue the information that a task has been taken from the output_queue,
 	 * and return the output of the task.
 	 */
-	virtual void* get_result() = 0;
+	virtual std::shared_ptr<ITask> get_result() = 0;
 
 	/**
 	 * Start all the workers of the farm.

@@ -3,6 +3,7 @@
 #include "AutonomicFarm.hpp"
 #include "fastflow/MonitoredFarm.hpp"
 #include "native/Executor.hpp"
+#include "native/Monitor.hpp"
 
 
 /**
@@ -27,7 +28,7 @@ AutonomicFarm::AutonomicFarm(bool fastflow,
 	if(fastflow)
 	{
 		auto fastflow_monitor = std::make_shared<fastflow::Monitor>(monitor_vectors_length, logger);
-		auto fastflow_executor = std::make_shared<fastflow::Executor>(starting_workers);
+		auto fastflow_executor = std::make_shared<fastflow::Executor>();
 		this->farm = std::make_shared<fastflow::MonitoredFarm>(starting_workers, max_workers, fastflow_monitor, fastflow_executor);
 		this->monitor = fastflow_monitor;
 		this->executor = fastflow_executor;

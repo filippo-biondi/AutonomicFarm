@@ -12,6 +12,8 @@ class MonitorLogger
 {
 protected:
 	std::vector<std::ostream*> streams;
+	bool first_log = true;
+	bool log_cout;
 
 public:
 	/**
@@ -22,7 +24,7 @@ public:
 	 * Basic MonitorLogger constructor.
 	 * @param streams the output streams on which the MonitorLogger will log.
 	 */
-	explicit MonitorLogger(std::vector<std::ostream*> streams);
+	explicit MonitorLogger(std::vector<std::ostream*> streams, bool log_cout);
 
 	/**
 	 * Log the string-value pairs on the streams specified in the constructor.

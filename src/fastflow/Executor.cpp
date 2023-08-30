@@ -5,7 +5,7 @@
 
 namespace fastflow
 {
-	Executor::Executor(unsigned int current_workers) : max_workers{}, cmd_channel{1, true, MAX_NUM_THREADS+100}
+	Executor::Executor() : max_workers{}, cmd_channel{1, true, MAX_NUM_THREADS+100}
 	{}
 
 	int Executor::svc_init()
@@ -13,12 +13,12 @@ namespace fastflow
 		this->max_workers = this->get_num_outchannels();
 		this->sleeping.reserve(max_workers);
 		this->exited.reserve(max_workers);
-		for(unsigned int i=0; i < *this->n_workers_ptr; i++)
+		for(unsigned int i=0; i < this->farm_ptr->n_workers; i++)
 		{
 			this->sleeping[i] = false;
 			this->exited[i] = false;
 		}
-		for(unsigned int i=*this->n_workers_ptr; i < this->max_workers; i++)
+		for(unsigned int i= this->farm_ptr->n_workers; i < this->max_workers; i++)
 		{
 			this->sleeping[i] = true;
 			this->ff_send_out_to(GO_OUT, i);
@@ -50,7 +50,7 @@ namespace fastflow
 					{
 						this->lb->thaw(sleeping_worker, true);
 						this->sleeping[sleeping_worker] = false;
-						(*this->n_workers_ptr)++;
+						this->farm_ptr->n_workers++;
 					}
 				}
 			}
@@ -64,7 +64,7 @@ namespace fastflow
 						this->sleeping[selected_worker] = true;
 						this->ff_send_out_to(GO_OUT, selected_worker);
 						this->ff_send_out_to(new EoSTask(), selected_worker);
-						(*this->n_workers_ptr)--;
+						this->farm_ptr->n_workers--;
 					}
 				}
 			}
@@ -73,7 +73,7 @@ namespace fastflow
 		return GO_ON;
 	}
 
-	void Executor::eosnotify(ssize_t id)
+	void Executor::eosnotify(ssize_t)
 	{
 		unsigned int exited_count = std::count(this->exited.begin(), this->exited.begin() + this->max_workers, true);
 		unsigned int i = 0;
@@ -131,8 +131,8 @@ namespace fastflow
 		this->cmd_channel.ff_send_out(new int(-static_cast<int>(n)));
 	}
 
-	void Executor::set_n_worker_ptr(std::shared_ptr<unsigned int>& ptr)
+	void Executor::set_farm_ptr(MonitoredFarm* ptr)
 	{
-		this->n_workers_ptr = ptr;
+		this->farm_ptr = ptr;
 	}
 }

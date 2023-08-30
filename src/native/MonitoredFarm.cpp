@@ -8,9 +8,9 @@ namespace native
 		Farm{max_workers}, current_workers{n_workers}, monitor_queue{}, worker_exited_queue{}
 	{}
 
-	unsigned long int MonitoredFarm::add_task(std::function<void()> func, void* output)
+	unsigned long int MonitoredFarm::add_task(ITask* task)
 	{
-		unsigned long int id = Farm::add_task(func, output);
+		unsigned long int id = Farm::add_task(task);
 		if(this->log_info)
 		{
 			MonitorInfo time_info = {InfoType::TASK_ARRIVED, std::this_thread::get_id(), id,
@@ -20,16 +20,16 @@ namespace native
 		return id;
 	}
 
-	void* MonitoredFarm::get_result()
+	std::shared_ptr<ITask> MonitoredFarm::get_result()
 	{
-		auto task = this->output_queue.pop().get();
+		auto task = this->output_queue.pop();
 		if(this->log_info)
 		{
 			MonitorInfo time_info = {InfoType::TASK_TAKEN, std::this_thread::get_id(), task->get_id(),
 			                         std::chrono::high_resolution_clock::now()};
 			this->monitor_queue.push(time_info);
 		}
-		return dynamic_cast<Task*>(task)->get_output();
+		return task;
 	}
 
 	/**
@@ -51,7 +51,7 @@ namespace native
 
 	void MonitoredFarm::stop()
 	{
-		for(unsigned int i = this->current_workers; i < this->workers.size(); i++)
+		for(unsigned int i = 0; i < this->workers.size(); i++)
 		{
 			auto a = false;
 			this->sleep_queue.push(a);

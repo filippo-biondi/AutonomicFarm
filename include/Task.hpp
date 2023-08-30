@@ -24,6 +24,11 @@ public:
 
 	virtual ~ITask() = default;
 
+	void set_id(unsigned int id)
+	{
+		this->id = id;
+	}
+
 	/**
 	 * Abstract method that represents the execution of the task.
 	 */
@@ -50,11 +55,12 @@ public:
 	}
 };
 
+template <typename Tout>
 class Task : public ITask
 {
 private:
-	std::function<void()> func;
-	void* output;
+	std::function<Tout()> func;
+	Tout output;
 	bool finished = false;
 
 public:
@@ -63,7 +69,7 @@ public:
 	 * @param id the id of the task
 	 * @param func the function to be executed
 	 */
-	explicit Task(unsigned long int id, std::function<void()> func, void* output) : ITask{id}, func{std::move(func)}, output{output}
+	explicit Task(unsigned long int id, std::function<Tout()> func) : ITask{id}, func{std::move(func)}
 	{}
 
 	/**
@@ -71,7 +77,7 @@ public:
 	 */
 	void run() override
 	{
-		this->func();
+		this->output = this->func();
 		this->finished = true;
 	}
 
@@ -96,7 +102,7 @@ public:
 	 * @return the output of the task
 	 */
 	[[nodiscard]]
-	void* get_output()
+	Tout get_output()
 	{
 		if(!this->finished)
 		{

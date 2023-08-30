@@ -23,7 +23,6 @@ namespace native
 		std::shared_ptr<MonitoredFarm> farm;
 		std::thread monitor_thread;
 		std::atomic<bool> stop_thread = false;
-		high_resolution_clock::time_point start_time;
 
 		void monitor_func();
 

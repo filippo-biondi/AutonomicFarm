@@ -11,26 +11,21 @@
 
 namespace native
 {
-	class Monitor;
-
 	/**
 	 * Class that implements a farm that can be monitored by a Monitor.
 	 */
 	class MonitoredFarm : public IMonitoredFarm, public Farm
 	{
 	private:
-		unsigned int current_workers;
+		std::atomic<unsigned int> current_workers;
 		SharedQueue<MonitorInfo> monitor_queue;
 		std::atomic<bool> log_info = false;
 		SharedQueue<std::thread::id> worker_exited_queue;
 		SharedQueue<bool> sleep_queue;
 
-		std::mutex farm_mutex;
-
 		void worker_func();
 
 	public:
-		friend class Manager;
 		friend class Monitor;
 		friend class Executor;
 
@@ -52,7 +47,7 @@ namespace native
 		 * and push it in the input queue.
 		 * Push in the monitor queue the information that a task has arrived in the input_queue.
 		 */
-		unsigned long int add_task(std::function<void()> func, void* output) override;
+		unsigned long int add_task(ITask* task) override;
 
 		/**
 		 * Get the first result in the output queue of the farm.
@@ -63,7 +58,7 @@ namespace native
 		 * push in the monitor queue the information that a task has been taken from the output_queue,
 		 * and return the output of the task.
 		 */
-		void* get_result() override;
+		std::shared_ptr<ITask> get_result() override;
 
 		/**
 		 * Start all the workers of the farm.

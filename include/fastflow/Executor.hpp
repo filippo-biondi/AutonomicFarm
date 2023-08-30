@@ -4,14 +4,17 @@
 
 #include "Task.hpp"
 #include "IExecutor.hpp"
+#include "fastflow/MonitoredFarm.hpp"
 
 
 namespace fastflow
 {
+	class MonitoredFarm;
+
 	class Executor : public ff::ff_monode, public IExecutor
 	{
 	private:
-		std::shared_ptr<unsigned int> n_workers_ptr;
+		MonitoredFarm* farm_ptr = nullptr;
 		unsigned int max_workers;
 		std::vector<bool> sleeping;
 		std::vector<bool> exited;
@@ -26,18 +29,13 @@ namespace fastflow
 		 * Basic Executor constructor.
 		 * @param farm the farm on which the executor operate
 		 */
-		explicit Executor(unsigned int current_workers);
+		explicit Executor();
 
 		int svc_init() override;
 
 		void* svc(void* t) override;
 
-//		void svc_end() override
-//		{
-//			std::cout << "Executor exited" << std::endl;
-//		}
-
-		void eosnotify(ssize_t id) override;
+		void eosnotify(ssize_t) override;
 
 		/**
 		 * Add n workers to the farm.
@@ -56,6 +54,6 @@ namespace fastflow
 			return &this->cmd_channel;
 		}
 
-		void set_n_worker_ptr(std::shared_ptr<unsigned int>& ptr);
+		void set_farm_ptr(MonitoredFarm* ptr);
 	};
 }
