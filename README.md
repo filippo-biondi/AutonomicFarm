@@ -27,6 +27,7 @@ make
 
 ## Plotting the result of the test
 ```bash
+cd ..
 pip install -r requirements.txt
 python3 plot_logs.py test_native.txt test_fastflow.txt test_native_latency.txt test_fastflow_latency.txt test_queue.txt
 ```
