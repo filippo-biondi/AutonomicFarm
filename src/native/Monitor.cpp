@@ -1,6 +1,4 @@
-#include <iostream>
 #include <iomanip>
-#include <numeric>
 #include <utility>
 
 #include "native/Monitor.hpp"

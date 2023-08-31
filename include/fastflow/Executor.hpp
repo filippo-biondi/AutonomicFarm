@@ -11,6 +11,9 @@ namespace fastflow
 {
 	class MonitoredFarm;
 
+	/**
+	 * FastFlow implementation of the Executor.
+	 */
 	class Executor : public ff::ff_monode, public IExecutor
 	{
 	private:
@@ -27,7 +30,6 @@ namespace fastflow
 	public:
 		/**
 		 * Basic Executor constructor.
-		 * @param farm the farm on which the executor operate
 		 */
 		explicit Executor();
 
@@ -49,11 +51,17 @@ namespace fastflow
 		 */
 		void remove_workers(unsigned int n) override;
 
-		ff::ff_buffernode* getChannel()
+		/**
+		 * Get the channel on which command for increasing/decreasing workers are sent.
+		 */
+		ff::ff_buffernode* get_channel()
 		{
 			return &this->cmd_channel;
 		}
 
+		/**
+		 * Set the pointer to the farm on which the executor will act.
+		 */
 		void set_farm_ptr(MonitoredFarm* ptr);
 	};
 }

@@ -7,7 +7,7 @@
 
 
 /**
- * Abstract class that represents a task.
+ * Interface of a task.
  */
 class ITask
 {
@@ -16,7 +16,7 @@ private:
 
 public:
 	/**
-	 * Abstract Task constructor.
+	 * Basic ITask constructor.
 	 * @param id the id of the task
 	 */
 	explicit ITask(unsigned long int id) : id{id}
@@ -24,20 +24,16 @@ public:
 
 	virtual ~ITask() = default;
 
+	/**
+	 * Change the id of the task.
+	 */
 	void set_id(unsigned int id)
 	{
 		this->id = id;
 	}
 
-	/**
-	 * Abstract method that represents the execution of the task.
-	 */
 	virtual void run() = 0;
 
-	/**
-	 * Abstract method that returns whether the task is an EoS task.
-	 * @return true if the task is an EoS task, false otherwise
-	 */
 	[[nodiscard]]
 	virtual bool is_eos() const = 0;
 
@@ -55,6 +51,10 @@ public:
 	}
 };
 
+/**
+ * Typed Task class.
+ * @tparam Tout the return type of the task
+ */
 template <typename Tout>
 class Task : public ITask
 {
@@ -65,7 +65,7 @@ private:
 
 public:
 	/**
-	 * TypedTask constructor for function without arguments.
+	 * Task constructor for function without arguments.
 	 * @param id the id of the task
 	 * @param func the function to be executed
 	 */
@@ -91,11 +91,16 @@ public:
 		return false;
 	}
 
+	/**
+	 * Returns whether the task is a sleep task.
+	 * @return false
+	 */
 	[[nodiscard]]
 	bool is_sleep() const override
 	{
 		return false;
 	}
+
 	/**
 	 * Get the output of the task.
 	 * @throw std::runtime_error if the task is not finished
@@ -124,6 +129,7 @@ public:
 	 */
 	explicit EoSTask() : ITask{0}
 	{}
+
 	void run() override
 	{}
 
@@ -137,6 +143,10 @@ public:
 		return true;
 	}
 
+	/**
+	 * Returns whether the task is a sleep task.
+	 * @return false
+	 */
 	[[nodiscard]]
 	bool is_sleep() const override
 	{
@@ -144,17 +154,25 @@ public:
 	}
 };
 
+/**
+ * Class that represents a sleep task.
+ */
 class SleepTask : public ITask
 {
 private:
 	SharedQueue<bool>& sleep_queue;
+
 public:
 	/**
-	 * Basic EoSTask constructor.
+	 * Basic SleepTask constructor.
+	 * @param sleep_queue the queue on which the worker will wait
 	 */
 	explicit SleepTask(SharedQueue<bool>& sleep_queue) : ITask{0}, sleep_queue{sleep_queue}
 	{}
 
+	/**
+	 * wait until an element is added to the queue
+	 */
 	void run() override
 	{
 		this->sleep_queue.pop();
@@ -162,7 +180,7 @@ public:
 
 	/**
 	 * Returns whether the task is an EoS task.
-	 * @return true
+	 * @return false
 	 */
 	[[nodiscard]]
 	bool is_eos() const override
@@ -170,6 +188,10 @@ public:
 		return false;
 	}
 
+	/**
+	 * Returns whether the task is a sleep task.
+	 * @return true
+	 */
 	[[nodiscard]]
 	bool is_sleep() const override
 	{

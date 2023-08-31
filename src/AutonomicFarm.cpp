@@ -1,15 +1,9 @@
-#include <utility>
-
 #include "AutonomicFarm.hpp"
 #include "fastflow/MonitoredFarm.hpp"
 #include "native/Executor.hpp"
 #include "native/Monitor.hpp"
 
 
-/**
- * Create a MonitoredFarm, a Monitor, an Analyzer, a Planner, and an Executor.
- * Create a Manager and pass to it the references to the farm and the monitor and the values af all the other component of the MAPE loop.
- */
 AutonomicFarm::AutonomicFarm(bool fastflow,
 							 unsigned int starting_workers,
                              unsigned int min_workers,
@@ -47,9 +41,6 @@ AutonomicFarm::AutonomicFarm(bool fastflow,
 	this->planner = std::make_shared<Planner>(starting_workers, min_workers, max_workers, time_to_recover_queue, wait_after_action);
 }
 
-/**
- * Start the manager and then start the farm.
- */
 void AutonomicFarm::start()
 {
 	this->monitor->start();
@@ -57,9 +48,6 @@ void AutonomicFarm::start()
 	this->farm->start();
 }
 
-/**
- * Stop the farm and then stop the manager.
- */
 void AutonomicFarm::stop()
 {
 	this->farm->stop();

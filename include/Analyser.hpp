@@ -23,7 +23,7 @@ public:
 	/**
 	 * Basic Analyzer constructor.
 	 * @param monitor Monitor from which metrics to base the decisions on are extracted
-	 * @param epsilon Estimated overhead of the farm caused by synchronization of worker when accessing shared queues
+	 * @param epsilon Tolerance on the differences between arrival frequency and throughput
 	 * @param queue_upper_limit If the queue size is greater than this value, the Analyzer will output Action::RECOVER_QUEUE until queue size become smaller that queue_lower_limit
 	 * @param queue_lower_limit If the queue size is lower than this value, the Analyzer will not output Action::RECOVER_QUEUE anymore.
 	 * @param average_time_span Time span of the moving average requested from the monitor by the Analyzer

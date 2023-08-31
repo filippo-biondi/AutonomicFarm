@@ -15,7 +15,7 @@ using std::chrono::high_resolution_clock;
 namespace native
 {
 	/**
-	 * Class that implements the monitor of the MAPE loop.
+	 * Native implementation of the monitor.
 	 */
 	class Monitor : public IMonitor
 	{

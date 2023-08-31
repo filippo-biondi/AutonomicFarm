@@ -59,17 +59,6 @@ namespace native
 		Farm::stop();
 	}
 
-	/**
-	 * Repeat the following actions until an EOS task is received:
-	 *   - pop a task from the input_queue,
-	 *   - push in the monitor queue the information that a task has started,
-	 *   - run the task,
-	 *   - push in the monitor queue the information that a task has finished,
-	 *   - push the task in the output_queue,
-	 *   - push in the monitor queue the information that a task has been pushed in the output_queue.
-	 *
-	 * After an EOS task is received, push the id of the current thread in the worker_exited_queue.
-	 */
 	void MonitoredFarm::worker_func()
 	{
 		while (true)

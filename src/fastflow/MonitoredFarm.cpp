@@ -96,7 +96,7 @@ namespace fastflow
 		this->farm.set_scheduling_ondemand();
 		this->farm.cleanup_workers();
 
-		this->farm.getlb()->addManagerChannel(executor->getChannel());
+		this->farm.getlb()->addManagerChannel(executor->get_channel());
 
 		monitor->set_farm_ptr(this);
 		executor->set_farm_ptr(this);

@@ -16,9 +16,14 @@
 #include "fastflow/Monitor.hpp"
 #include "fastflow/Executor.hpp"
 
-
+/**
+ * Namespace for FastFlow implementation classes.
+ */
 namespace fastflow
 {
+	/**
+	 * First stage of the pipeline that pop task from the input queue and send them to the Monitor.
+	 */
 	class InputSource : public ff::ff_node_t<ITask>
 	{
 	public:
@@ -30,7 +35,9 @@ namespace fastflow
 		SharedQueue<ITask*>& input_queue;
 	};
 
-
+	/**
+	 * Worker of the farm.
+	 */
 	class Worker : public ff::ff_monode
 	{
 		void *svc(void *t) override;
@@ -39,6 +46,9 @@ namespace fastflow
 	};
 
 
+	/**
+	 * Last stage of the pipeline that push task in the output queue.
+	 */
 	class OutputSink : public ff::ff_minode
 	{
 	public:
@@ -53,6 +63,9 @@ namespace fastflow
 	class Monitor;
 	class Executor;
 
+	/**
+	 * Fastflow implementation of a Farm capable of being monitored and with variable number of workers.
+	 */
 	class MonitoredFarm : public IMonitoredFarm
 	{
 	private:
@@ -71,16 +84,39 @@ namespace fastflow
 		friend class Executor;
 		friend class Monitor;
 
+		/**
+		 * Basic MonitoredFarm constructor.
+		 * @param n_workers initial number of workers
+		 * @param max_workers maximum number of workers
+		 * @param monitor monitor of the MAPE loop
+		 * @param executor executor of the MAPE loop
+		 */
 		explicit MonitoredFarm(unsigned short int n_workers, unsigned short int max_workers, std::shared_ptr<Monitor> monitor, std::shared_ptr<Executor> executor);
 
+		/**
+		 * Basic MonitoredFarm destructor.
+		 */
 		~MonitoredFarm() override;
 
+		/**
+		 * Add a task to be executed by the farm.
+		 * @param task pointer to the task to be executed
+		 */
 		unsigned long int add_task(ITask* task) override;
 
+		/**
+		 * Start the execution of the farm.
+		 */
 		void start() override;
 
+		/**
+		 * Stop the execution of the farm.
+		 */
 		void stop() override;
 
+		/**
+		 * Get the first task in the output queue.
+		 */
 		std::shared_ptr<ITask> get_result() override;
 	};
 }

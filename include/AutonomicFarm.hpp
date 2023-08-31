@@ -8,7 +8,7 @@
 
 
 /**
- * Class that implements the Autonomic %MonitoredFarm pattern.
+ * Class that implements the AutonomicFarm.
  */
 class AutonomicFarm
 {
@@ -23,10 +23,6 @@ private:
 	std::chrono::duration<double> wait_time;
 	std::atomic<bool> stop_thread = false;
 
-
-	/**
-	 * Method that run the MAPE loop.
-	 */
 	void manager_func();
 
 

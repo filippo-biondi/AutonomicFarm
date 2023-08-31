@@ -8,9 +8,6 @@ namespace native
 	Executor::Executor(std::shared_ptr<MonitoredFarm> farm) : farm{std::move(farm)}
 	{}
 
-	/**
-	 * Start n new threads and push them in the workers vector of the farm.
-	 */
 	void Executor::add_workers(unsigned int n)
 	{
 		for(unsigned int i=0; i < n; i++)
@@ -21,10 +18,6 @@ namespace native
 		}
 	}
 
-	/**
-	 * Push n EoSTask in the input_queue of the farm and wait for the workers to exit.
-	 * Then join the threads of the exited worker and remove them from the workers vector of the farm.
-	 */
 	void Executor::remove_workers(unsigned int n)
 	{
 		for(unsigned int i=0; i < n; i++)

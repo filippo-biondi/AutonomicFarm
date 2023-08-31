@@ -11,7 +11,7 @@
 namespace native
 {
 	/**
-	 * Class that implements the Executor component of the MAPE loop.
+	 * Native implementation of the Executor.
 	 * Executor is responsible for adding and removing workers from the farm.
 	 */
 	class Executor : public IExecutor

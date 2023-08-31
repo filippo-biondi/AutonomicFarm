@@ -20,9 +20,11 @@ public:
 	 * MonitorLogger constructor for empty logger.
 	 */
 	MonitorLogger();
+
 	/**
 	 * Basic MonitorLogger constructor.
 	 * @param streams the output streams on which the MonitorLogger will log.
+	 * @param log_cout whether or not log metrics also on standard output
 	 */
 	explicit MonitorLogger(std::vector<std::ostream*> streams, bool log_cout);
 

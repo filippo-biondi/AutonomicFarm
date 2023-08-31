@@ -13,7 +13,9 @@ using std::chrono::duration;
 using std::chrono::high_resolution_clock;
 
 	/**
-	 * Class that implements the monitor of the MAPE loop.
+	 * Interface of the monitor of the MAPE loop.
+	 *
+	 * This class also provide the shared part of the implementation of the Monitor
 	 */
 	class IMonitor
 	{
@@ -32,6 +34,9 @@ using std::chrono::high_resolution_clock;
 		static double get_avg(CircularVector<high_resolution_clock::time_point>& vector, duration<double> time_span);
 
 	public:
+		/**
+		 * Basic IMonitor constructor.
+		 */
 		IMonitor(unsigned int vectors_length, MonitorLogger logger);
 
 		virtual ~IMonitor() = default;

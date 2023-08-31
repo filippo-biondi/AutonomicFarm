@@ -7,7 +7,7 @@
 
 
 /**
- * Class that implements the Executor component of the MAPE loop.
+ * Interface of the Executor component of the MAPE loop.
  * Executor is responsible for adding and removing workers from the farm.
  */
 class IExecutor
