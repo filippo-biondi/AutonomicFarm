@@ -20,7 +20,6 @@ namespace native
 		std::atomic<unsigned int> current_workers;
 		SharedQueue<MonitorInfo> monitor_queue;
 		std::atomic<bool> log_info = false;
-		SharedQueue<std::thread::id> worker_exited_queue;
 		SharedQueue<bool> sleep_queue;
 
 		void worker_func();

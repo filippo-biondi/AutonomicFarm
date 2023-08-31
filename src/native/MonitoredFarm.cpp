@@ -5,7 +5,7 @@
 namespace native
 {
 	MonitoredFarm::MonitoredFarm(unsigned int n_workers, unsigned int max_workers) :
-		Farm{max_workers}, current_workers{n_workers}, monitor_queue{}, worker_exited_queue{}
+		Farm{max_workers}, current_workers{n_workers}, monitor_queue{}
 	{}
 
 	unsigned long int MonitoredFarm::add_task(ITask* task)
@@ -112,7 +112,5 @@ namespace native
 				this->monitor_queue.push(time_info);
 			}
 		}
-		auto my_id = std::this_thread::get_id();
-		this->worker_exited_queue.push(my_id);
 	}
 }

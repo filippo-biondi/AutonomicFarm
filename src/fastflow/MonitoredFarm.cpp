@@ -52,7 +52,6 @@ namespace fastflow
 	}
 
 
-
 	OutputSink::OutputSink(SharedQueue<ITask*>& output_queue) : output_queue{output_queue}
 	{}
 
@@ -69,7 +68,6 @@ namespace fastflow
 
 		return info;
 	}
-
 
 
 	MonitoredFarm::MonitoredFarm(unsigned short int n_workers, unsigned short int max_workers, std::shared_ptr<Monitor> monitor, std::shared_ptr<Executor> executor) :

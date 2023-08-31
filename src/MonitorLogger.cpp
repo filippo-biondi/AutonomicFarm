@@ -10,7 +10,10 @@ MonitorLogger::MonitorLogger() : streams{}, log_cout{false}
 
 MonitorLogger::MonitorLogger(std::vector<std::ostream*> streams, bool log_cout) : streams{std::move(streams)}, log_cout{log_cout}
 {
-	this->streams.push_back(&std::cout);
+	if(this->log_cout)
+	{
+		this->streams.push_back(&std::cout);
+	}
 }
 
 /**

@@ -63,23 +63,9 @@ namespace native
 	 */
 	void Farm::start()
 	{
-		int i = 0;
 		for (auto &worker: this->workers)
 		{
 			worker = std::thread(&Farm::worker_func, this);
-#if PIN_TO_CORES
-			std::cout << "Pinning thread " << i << " to core " << i << "\n";
-			cpu_set_t cpuset;
-			CPU_ZERO(&cpuset);
-			CPU_SET(i, &cpuset);
-			int rc = pthread_setaffinity_np(worker.native_handle(),
-			                                sizeof(cpu_set_t), &cpuset);
-			if (rc != 0)
-			{
-				std::cerr << "Error calling pthread_setaffinity_np: " << rc << "\n";
-			}
-			i++;
-#endif
 		}
 	}
 

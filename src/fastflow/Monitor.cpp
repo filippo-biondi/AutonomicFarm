@@ -60,8 +60,8 @@ namespace fastflow
 
 	unsigned long int Monitor::get_arrival_queue_size()
 	{
-		// didn't find a way to access input buffer of the emitter so arrival queue size is not implemented
-		return 0;
+		std::unique_lock<std::mutex> lock(this->monitor_mutex);
+		return this->farm_ptr->input_queue.size();
 	}
 
 	unsigned int Monitor::get_n_worker()
