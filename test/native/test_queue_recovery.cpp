@@ -4,14 +4,17 @@
 #include "AutonomicFarm.hpp"
 
 
-int test_func(int x)
+unsigned long int divisors(unsigned long int x)
 {
-	auto start_time = high_resolution_clock::now();
-	while(duration<double>(high_resolution_clock::now() - start_time).count() < 0.5)
+	unsigned long int divisors = 0;
+	for(unsigned long int i=2; i < x; i++)
 	{
-		x++;
+		if(x % i == 0)
+		{
+			divisors++;
+		}
 	}
-	return x;
+	return divisors;
 }
 
 int main()
@@ -21,8 +24,8 @@ int main()
 
 	AutonomicFarm farm{false,
 	                   5,
-	                   2,
-	                   10,
+	                   1,
+	                   64,
 	                   1000,
 	                   2.0,
 	                   0.5,
@@ -34,26 +37,23 @@ int main()
 	                   MonitorLogger{{&log_file}, true}};
 
 	farm.start();
-
+	unsigned long int input = 99997649;
 	for (int i = 0; i < 100; i++)
 	{
-		int input = 0;
-		farm.add_task<int, int>(test_func, input);
+		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	for (int i = 0; i < 1000; i++)
 	{
-		int input = 0;
-		farm.add_task<int, int>(test_func, input);
+		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 200; i++)
 	{
-		int input = 0;
-		farm.add_task<int, int>(test_func, input);
+		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
@@ -61,7 +61,7 @@ int main()
 
 	for(int i = 0; i < 10; i++)
 	{
-		int result = farm.get_result<int>();
+		auto result = farm.get_result<unsigned long int>();
 		std::cout << result << std::endl;
 	}
 

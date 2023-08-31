@@ -34,6 +34,8 @@ namespace fastflow
 	class Worker : public ff::ff_monode
 	{
 		void *svc(void *t) override;
+
+		void eosnotify(ssize_t) override;
 	};
 
 

@@ -9,15 +9,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "")
 
-#add_compile_options(-DFF_BOUNDED_BUFFER)
-#add_compile_options(-DDEFAULT_BUFFER_CAPACITY=1)
+# add_compile_options(-DFF_BOUNDED_BUFFER)
+# add_compile_options(-DDEFAULT_BUFFER_CAPACITY=1)
 
 set(BUILD_TEST ON)
 
 include_directories(./include
-                    ./fastflow)
+        ./fastflow)
 
 file(GLOB SRC_FILES_NATIVE src/native/*.c*)
 file(GLOB SRC_FILES_FASTFLOW src/fastflow/*.c*)

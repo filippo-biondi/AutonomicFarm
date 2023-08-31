@@ -24,8 +24,8 @@ int main()
 
 	AutonomicFarm farm{false,
 	                   5,
-	                   2,
-	                   8,
+	                   1,
+	                   64,
 	                   1000,
 	                   5.0,
 	                   2.0,
@@ -39,28 +39,28 @@ int main()
 	farm.start();
 
 	unsigned long int input = 99997649;
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 200; i++)
 	{
 		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
-		std::this_thread::sleep_for(std::chrono::milliseconds(150));
+		std::this_thread::sleep_for(std::chrono::milliseconds(70));
+	}
+
+	for (int i = 0; i < 500; i++)
+	{
+		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 
 	for (int i = 0; i < 200; i++)
 	{
 		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-
-	for (int i = 0; i < 100; i++)
-	{
-		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
-		std::this_thread::sleep_for(std::chrono::milliseconds(150));
-	}
-
-	for (int i = 0; i < 100; i++)
-	{
-		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	for (int i = 0; i < 200; i++)
+	{
+		farm.add_task<unsigned long int, unsigned long int>(divisors, input);
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
 
 	farm.stop();

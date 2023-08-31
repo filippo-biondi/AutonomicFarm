@@ -51,6 +51,11 @@ namespace fastflow
 		return GO_ON;
 	}
 
+	void Worker::eosnotify(ssize_t)
+	{
+		broadcast_task(EOS);
+	}
+
 
 	OutputSink::OutputSink(SharedQueue<ITask*>& output_queue) : output_queue{output_queue}
 	{}

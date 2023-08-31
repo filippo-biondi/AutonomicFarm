@@ -18,7 +18,7 @@ Planner::Planner(unsigned int current_workers, unsigned int min_workers, unsigne
 int Planner::plan(Action action, double throughput, double arrival_frequency, double task_time, unsigned int queue_size)
 {
 	double average_worker_service_time = 1.0 / task_time;
-	int ideal_workers;
+	int ideal_workers = static_cast<int>(this->current_workers);
 	int new_workers;
 	switch(action)
 	{
