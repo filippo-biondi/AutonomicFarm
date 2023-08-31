@@ -3,6 +3,7 @@
 ## Instruction to build and test execution
 ```bash
 git clone https://github.com/filippo-biondi/AutonomicFarm.git
+cd AutonomicFarm
 
 # if FastFlow is not installed in your computer
 git submodule init
